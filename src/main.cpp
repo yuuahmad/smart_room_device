@@ -10,11 +10,11 @@
 #include <Firebase_ESP_Client.h>
 #include <addons/TokenHelper.h>
 #include <addons/RTDBHelper.h>
-#define WIFI_SSID "YUUAHMAD laptop" // ini adalah nama wifi
-#define WIFI_PASSWORD "yusuf1112"   // dan ini adalah passwordnya. kosongkan bagian ini kalau tidak pakai password
-#define API_KEY "AIzaSyDxdifqzfU7VL7HvOqn1bz8GsesRy6xvhc"
-#define DATABASE_URL "solar-tracker-database-default-rtdb.asia-southeast1.firebasedatabase.app" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
-#define USER_EMAIL "ahmad.yusuf11@gmail.com"
+#define WIFI_SSID "WIFI@ITERA-IOT" // ini adalah nama wifi
+#define WIFI_PASSWORD "IOT-ITERA"  // dan ini adalah passwordnya. kosongkan bagian ini kalau tidak pakai password
+#define API_KEY "AIzaSyCbbh0QQxwejqKNVYapf0aSIbsna96eyYM"
+#define DATABASE_URL "smart-tera-default-rtdb.asia-southeast1.firebasedatabase.app" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
+#define USER_EMAIL "ahmad@gmail.com"
 #define USER_PASSWORD "yusuf1112"
 
 // Define Firebase Data object
@@ -24,15 +24,15 @@ FirebaseConfig config;
 unsigned long sendDataPrevMillis = 0;
 int nilaitambah = 0;
 
-// buat variabel bool untuk parsing data.
-bool parsing = false;
-String sData, data[10];
-int temperatur, bat_volt, solar_volt, arus;
-
 void setup()
 {
   // mulai komunikasi serial
   Serial.begin(9600);
+  pinMode(D0, OUTPUT);
+  pinMode(D1, OUTPUT);
+  pinMode(D2, OUTPUT);
+  pinMode(D3, OUTPUT);
+  bool relay1data, relay2data, relay3data, relay4data;
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
@@ -59,53 +59,9 @@ void setup()
 
 void loop()
 {
-  // kode untuk mendapatkan nilai dari arduino mega
-  // while (Serial.available())
-  // {
-  //   // buat variabel nilaiinput, dan masukkan nilai serial.readString kesana
-  //   // String nilaiInput = Serial.readString();
-  //   // print/tampilkan nilai input tadi di serial monitor
-  //   char inChar = Serial.read();
-  //   sData += inChar;
-  //   if (inChar == '$')
-  //     parsing = true;
-  //   if (parsing)
-  //   {
-  //     int q = 0;
-  //     for (int i = 0; i < sData.length(); i++)
-  //     {
-  //       if (sData[i] == '#')
-  //       {
-  //         q++;
-  //         data[q] = "";
-  //       }
-  //       else
-  //         data[q] += sData[i];
-  //     }
-  //     // setelah semua data didapatkan, kita akan print datanya ke serial satu persatu
-  //     temperatur = data[1].toInt();
-  //     bat_volt = data[2].toInt();
-  //     solar_volt = data[3].toInt();
-  //     arus = data[4].toInt();
-  //     parsing = false;
-  //     sData = "";
-  //   }
-  // }
-  // ini kode untuk upload kode ke firebase
-  if (Firebase.ready() && (millis() - sendDataPrevMillis > 4000 || sendDataPrevMillis == 0))
+  if (Firebase.ready() && (millis() - sendDataPrevMillis > 15000 || sendDataPrevMillis == 0))
   {
     sendDataPrevMillis = millis();
-    Firebase.RTDB.setFloat(&fbdo, "/data_iot_device/device_a/relay1", temperatur);
-    Firebase.RTDB.setFloat(&fbdo, "/soltra1/teganganbaterai", bat_volt);
-    Firebase.RTDB.setFloat(&fbdo, "/solar_volt", solar_volt);
-    Firebase.RTDB.setFloat(&fbdo, "/arus", arus);
+    Serial.printf("Get bool ref... %s\n", Firebase.RTDB.getBool(&fbdo, "/data_iot_device/device_a/relay_1", &relay1data) ? relay1data ? digitalWrite(D0, HIGH) : digitalWrite(D0, LOW) : fbdo.errorReason().c_str());
   }
-
-  if (Firebase.RTDB.getInt(&fbdo, "/data_iot_device/device_a/relay1"))
-    if (fbdo.dataTypeEnum() == fb_esp_rtdb_data_type_integer)
-    {
-      Serial.println(fbdo.to<int>());
-    }
-    else
-      Serial.println(fbdo.errorReason());
 }
