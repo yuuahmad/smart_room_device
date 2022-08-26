@@ -12,14 +12,14 @@
 #include <DHT.h>
 #include <DHT_U.h>
 
-// #define DHTPIN D5
-// #define DHTTYPE DHT22 // DHT 22 (AM2302)
-// DHT_Unified dht(DHTPIN, DHTTYPE);
-// uint32_t delayMS;
+#define DHTPIN D5
+#define DHTTYPE DHT22 // DHT 22 (AM2302)
+DHT_Unified dht(DHTPIN, DHTTYPE);
+uint32_t delayMS;
 
 /* 1. Define the WiFi credentials */
-#define WIFI_SSID "WIFI@ITERA-IOT"
-#define WIFI_PASSWORD "IOT-ITERA"
+#define WIFI_SSID "Smart Biogas"
+#define WIFI_PASSWORD "Smartbiogas01"
 /* 2. Define the API Key */
 #define API_KEY "AIzaSyCbbh0QQxwejqKNVYapf0aSIbsna96eyYM"
 /* 3. Define the RTDB URL */
@@ -58,14 +58,6 @@ void setup()
   digitalWrite(D1, LOW); // ini yang sensor pir
   digitalWrite(D2, LOW);
   digitalWrite(D3, LOW);
-
-  // dht.temperature().getSensor(&sensor);
-  // Serial.println(sensor.name);
-  // Serial.println(sensor.sensor_id);
-
-  // dht.humidity().getSensor(&sensor);
-  // Serial.println(sensor.name);
-  // Serial.println(sensor.sensor_id);
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
@@ -111,27 +103,24 @@ void setup()
 
   config.timeout.serverResponse = 10 * 1000;
 
-  // dht.begin();
-  // sensor_t sensor;
-
-  // delayMS = sensor.min_delay / 1000;
+  dht.begin();
 }
 
 void loop()
 {
 
-  nilaigerakan = digitalRead(D5);
+  nilaigerakan = digitalRead(D4);
   Serial.print("gerakan:");
   Serial.print(nilaigerakan);
 
   if (nilaigerakan == HIGH)
   {
-    digitalWrite(D1, HIGH);
+    digitalWrite(D3, HIGH);
     delay(1);
   }
   else
   {
-    digitalWrite(D1, LOW);
+    digitalWrite(D3, LOW);
     delay(1);
   }
 
@@ -140,32 +129,30 @@ void loop()
   {
     sendDataPrevMillis = millis();
 
-    // Serial.printf("Get relay1... %s\n", Firebase.RTDB.getBool(&fbdo, F("/data_iot_device/device_a/relay_1"), &bVal1) ? bVal1 ? "true" : "false" : fbdo.errorReason().c_str());
+    Serial.printf("Get relay1... %s\n", Firebase.RTDB.getBool(&fbdo, F("/data_iot_device/device_a/relay_1"), &bVal1) ? bVal1 ? "true" : "false" : fbdo.errorReason().c_str());
+    Serial.printf("Get relay2... %s\n", Firebase.RTDB.getBool(&fbdo, F("/data_iot_device/device_a/relay_2"), &bVal2) ? bVal2 ? "true" : "false" : fbdo.errorReason().c_str());
+    Serial.printf("Get relay3... %s\n", Firebase.RTDB.getBool(&fbdo, F("/data_iot_device/device_a/relay_3"), &bVal3) ? bVal3 ? "true" : "false" : fbdo.errorReason().c_str());
 
-    // Serial.printf("Get relay2... %s\n", Firebase.RTDB.getBool(&fbdo, F("/data_iot_device/device_a/relay_2"), &bVal2) ? bVal2 ? "true" : "false" : fbdo.errorReason().c_str());
-
-    // Serial.printf("Get relay3... %s\n", Firebase.RTDB.getBool(&fbdo, F("/data_iot_device/device_a/relay_3"), &bVal3) ? bVal3 ? "true" : "false" : fbdo.errorReason().c_str());
-
-    // sensors_event_t event;
-    // dht.temperature().getEvent(&event);
-    // nilaitemp = event.temperature;
+    sensors_event_t event;
+    dht.temperature().getEvent(&event);
+    nilaitemp = event.temperature;
 
     if (Firebase.RTDB.setBool(&fbdo, "/data_iot_device/device_a/relay_4", nilaigerakan))
       Serial.print("gerakan terupload...");
     else
       Serial.println(fbdo.errorReason());
 
-    // // dht.humidity().getEvent(&event);
     // dht.humidity().getEvent(&event);
-    // nilaihum = event.relative_humidity;
-    // if (Firebase.RTDB.setFloat(&fbdo, "/data_iot_device/device_a/sensor_2", nilaihum))
-    //   Serial.print("hum terupload...");
-    // else
-    //   Serial.println(fbdo.errorReason());
+    dht.humidity().getEvent(&event);
+    nilaihum = event.relative_humidity;
+    if (Firebase.RTDB.setFloat(&fbdo, "/data_iot_device/device_a/sensor_2", nilaihum))
+      Serial.print("hum terupload...");
+    else
+      Serial.println(fbdo.errorReason());
 
     Serial.println();
   }
   digitalWrite(D0, bVal1);
-  // digitalWrite(D1, bVal2);
+  digitalWrite(D1, bVal2);
   digitalWrite(D2, bVal3);
 }
